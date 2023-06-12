@@ -406,7 +406,7 @@ CREATE TABLE `undo_log`
 
 5. 启动 微服务 的 business account stock order
 6. 访问 nacos 检查 当前的服务是否都正确注册到 nacos server
-7. GET 请求 http://127.0.0.1/business/toOrder?userId=1&commodityCode=C201901140001&count=2000&amount=4000
+7. GET 请求 http://127.0.0.1/business/toOrder?userId=1&commodityCode=C202306121800&count=2000&amount=4000
 
 
 ### 服务入口为 `business` 服务下的  `BusinessController`
@@ -443,9 +443,9 @@ public class BusinessController {
 2023-06-12 18:29:06.383  INFO 33872 --- [p-nio-80-exec-1] i.seata.tm.api.DefaultGlobalTransaction  : Begin new global transaction [192.168.50.15:8091:18416337030565889]
 2023-06-12 18:29:07.216  INFO 33872 --- [p-nio-80-exec-1] i.seata.tm.api.DefaultGlobalTransaction  : Suspending current transaction, xid = 192.168.50.15:8091:18416337030565889
 2023-06-12 18:29:07.217  INFO 33872 --- [p-nio-80-exec-1] i.seata.tm.api.DefaultGlobalTransaction  : [192.168.50.15:8091:18416337030565889] rollback status: Rollbacked
-2023-06-12 18:29:07.229 ERROR 33872 --- [p-nio-80-exec-1] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is feign.FeignException$InternalServerError: [500] during [GET] to [http://stock/stock/deduct?commodityCode=C201901140001&count=2000] [StockFeign#deduct(String,Integer)]: [{"timestamp":"2023-06-12T10:29:07.147+00:00","status":500,"error":"Internal Server Error","path":"/stock/deduct"}]] with root cause
+2023-06-12 18:29:07.229 ERROR 33872 --- [p-nio-80-exec-1] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is feign.FeignException$InternalServerError: [500] during [GET] to [http://stock/stock/deduct?commodityCode=C202306121800&count=2000] [StockFeign#deduct(String,Integer)]: [{"timestamp":"2023-06-12T10:29:07.147+00:00","status":500,"error":"Internal Server Error","path":"/stock/deduct"}]] with root cause
 
-feign.FeignException$InternalServerError: [500] during [GET] to [http://stock/stock/deduct?commodityCode=C201901140001&count=2000] [StockFeign#deduct(String,Integer)]: [{"timestamp":"2023-06-12T10:29:07.147+00:00","status":500,"error":"Internal Server Error","path":"/stock/deduct"}]
+feign.FeignException$InternalServerError: [500] during [GET] to [http://stock/stock/deduct?commodityCode=C202306121800&count=2000] [StockFeign#deduct(String,Integer)]: [{"timestamp":"2023-06-12T10:29:07.147+00:00","status":500,"error":"Internal Server Error","path":"/stock/deduct"}]
 	at feign.FeignException.serverErrorStatus(FeignException.java:250) ~[feign-core-11.10.jar:na]
 	at feign.FeignException.errorStatus(FeignException.java:197) ~[feign-core-11.10.jar:na]
 	at feign.FeignException.errorStatus(FeignException.java:185) ~[feign-core-11.10.jar:na]
@@ -493,9 +493,9 @@ Closing non transactional SqlSession [org.apache.ibatis.session.defaults.Default
 
 JDBC Connection [io.seata.rm.datasource.ConnectionProxy@51d520a6] will not be managed by Spring
 ==>  Preparing: SELECT id,name,commodity_code,count FROM t_stock WHERE (commodity_code = ?)
-==> Parameters: C201901140001(String)
+==> Parameters: C202306121800(String)
 <==    Columns: id, name, commodity_code, count
-<==        Row: 1, 水杯, C201901140001, 1000
+<==        Row: 1, 水杯, C202306121800, 1000
 <==      Total: 1
 Closing non transactional SqlSession [org.apache.ibatis.session.defaults.DefaultSqlSession@47dd5002]
 2023-06-12 18:29:07.139 ERROR 34704 --- [p-nio-83-exec-1] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed; nested exception is java.lang.RuntimeException: Not enough stock] with root cause
