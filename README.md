@@ -44,12 +44,12 @@
          timeout: 10s
          retries: 10
     ```
-    - 1 启动 nacos server 进入 /docker/docker-compose/nacos `docker-compose up -d`
-    - 2 访问 nacos server (http://192.168.50.15:8848/nacos) 账号密码都是`nacos`
-    - 3 在nacos上创建seata的命名空间，需要记住的是 命名空间的id ，这个值在后期需要用到。
-    - 4 运行`nacos-config.sh`导入 seata 的配置到 nacos中对应的命名空间`namespace`中 主要是`db`部分
-    - 5 [官方导入脚本代码](https://github.com/seata/seata/blob/1.4.2/script/config-center/README.md)
-    - 6 我用官方脚本导入报错。 107行的配置数据，我参考脚本用postman自己手动一条一条导入的。。。
+    - 2 启动 nacos server 进入 /docker/docker-compose/nacos `docker-compose up -d`
+    - 3 访问 nacos server (http://192.168.50.15:8848/nacos) 账号密码都是`nacos`
+    - 4 在nacos上创建seata的命名空间，需要记住的是 命名空间的id ，这个值在后期需要用到。
+    - 5 运行`nacos-config.sh`导入 seata 的配置到 nacos中对应的命名空间`namespace`中 主要是`db`部分
+    - 6 [官方导入脚本代码](https://github.com/seata/seata/blob/1.4.2/script/config-center/README.md)
+    - 7 我用官方脚本导入报错。 107行的配置数据，我参考脚本用postman自己手动一条一条导入的。。。
    ```text
    #For details about configuration items, see https://seata.io/zh-cn/docs/user/configurations.html
    #Transport configuration, for client and server
