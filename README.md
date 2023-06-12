@@ -2,15 +2,54 @@
 
 ### 通过本文你能学会 基于 seata nacos 的分布式事务解决方案 
 
-1. 导入sql 不同的业务表理论上来说是在不同的库中的， 可以一个服务建一个库。 你也可以先放一个库开发测试。 
-2. 修改 你本机配置文件中 对应的 ip nacos seata server ip port
-3. 搭建 nacos-server docker服务 假设目录在`/docker/docker-compose/nacos`
+1. 搭建 nacos-server docker服务 假设目录在`/docker/docker-compose/nacos`
+    - 1 创建nacos server docker-compose.yml 文件
+    ```yaml
+   version: "3.9"
+   services:
+     nacos:
+       image: nacos/nacos-server:v2.2.3
+       container_name: nacos-standalone-mysql
+       env_file:
+         - ./env/nacos-standlone-mysql.env
+       environment:
+         - NACOS_AUTH_ENABLE=true
+         - NACOS_AUTH_TOKEN_EXPIRE_SECONDS=1800
+         - NACOS_AUTH_TOKEN=SecretKey012345678901234567890123456789012345678901234567890123456789
+       volumes:
+         - ./standalone-logs/:/home/nacos/logs
+         - ./conf/application.properties:/home/nacos/conf/application.properties
+       ports:
+         - "8848:8848"
+         - "9848:9848"
+       depends_on:
+         mysql:
+           condition: service_healthy
+       restart: always
+     mysql:
+       container_name: mysql
+       build:
+         context: .
+         dockerfile: ./image/mysql/8/Dockerfile
+       image: example/mysql:8.0.30
+       env_file:
+         - ./env/mysql.env
+       volumes:
+         - ./mysql:/var/lib/mysql
+       ports:
+         - "3306:3306"
+       healthcheck:
+         test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+         interval: 5s
+         timeout: 10s
+         retries: 10
+    ```
     - 1 启动 nacos server 进入 /docker/docker-compose/nacos `docker-compose up -d`
     - 2 访问 nacos server (http://192.168.50.15:8848/nacos) 账号密码都是`nacos`
     - 3 在nacos上创建seata的命名空间，需要记住的是 命名空间的id ，这个值在后期需要用到。
     - 4 运行`nacos-config.sh`导入 seata 的配置到 nacos中对应的命名空间`namespace`中 主要是`db`部分
-    - [官方导入脚本代码](https://github.com/seata/seata/blob/1.4.2/script/config-center/README.md)
-    - [我用官方脚本导入报错。 107行的配置数据，我参考脚本用postman自己手动一条一条导入的。。。官方不出直接能通过UI一键导入的数据也是很无语]
+    - 5 [官方导入脚本代码](https://github.com/seata/seata/blob/1.4.2/script/config-center/README.md)
+    - 6 我用官方脚本导入报错。 107行的配置数据，我参考脚本用postman自己手动一条一条导入的。。。
    ```text
    #For details about configuration items, see https://seata.io/zh-cn/docs/user/configurations.html
    #Transport configuration, for client and server
@@ -143,8 +182,8 @@
    metrics.exporterList=prometheus
    metrics.exporterPrometheusPort=9898
    ```
-4. 搭建 seata-server docker服务 假设目录在`/docker/docker-compose/seata`
-    - 1  为了复制要修改的配置目录 先用docker run 启动一个默认的seata-server 
+2. 搭建 seata-server docker服务 假设目录在`/docker/docker-compose/seata`
+    - 1 为了复制要修改的配置目录 先用docker run 启动一个默认的seata-server 
     - 2 启动一个临时seata server ，复制要修改的资源目录 
     ```shell
     # 
@@ -239,9 +278,35 @@
    ```shell
    docker stop seata-temp
    ```
-   - 5 启动 seata server 进入/docker/docker-compose/seata 运行 `docker-compose up -d`
-5. 访问 seata server (http://192.168.50.15:7091/#/TransactionInfo) 账号密码都是 `seata` 
-6. 初始化项目sql
+   - 5 创建 seata server docker-compose.yml
+   ```yaml
+   version: "3.9"
+   services:
+     seata-server:
+       image: seataio/seata-server:1.6.1
+       hostname: seata-server
+       ports:
+         - "7091:7091"
+         - "8091:8091"
+       environment:
+         # 时区设置为东8区
+         - TZ=Asia/Shanghai
+         # 可不用, 会从配置中心读取, 加上这个万一配置中心配置有问题加载不到配置时会报错可提前发现问题
+         - STORE_MODE=db
+         # 以SEATA_IP作为host注册到注册中心，使用宿主机ip
+         - SEATA_IP=192.168.50.15
+         - SEATA_PORT=8091
+        # 官方说明的registry.conf 貌似是不生效的 至少我测试了很久1.61的seata docker是这样 我映射这个的话 启动会一直报127的mysql连接失败不知道为什么官方文档也不统一 而且不能只映射application.yml一个文件 得映射整个文件夹 - -
+        #- SEATA_CONFIG_NAME=file:/root/seata-config/registry
+       volumes:
+         # 时区设置为东8区 上面的环境变量有时不生效
+         - /usr/share/zoneinfo/Asia/Shanghai:/etc/localtime
+         - ./resources:/seata-server/resources
+   ```
+      - 6 启动 seata server 进入/docker/docker-compose/seata 运行 `docker-compose up -d`
+3. 访问 seata server (http://192.168.50.15:7091/#/TransactionInfo) 账号密码都是 `seata` 
+4. 初始化项目sql
+> 不同的业务表理论上来说是在不同的库中的， 可以一个服务建一个库。 你也可以先放一个库开发测试。  
 > 请注意每个使用`seata-server`的微服务的数据库都必须得有 `undo_log` 表！
 ```mysql
 -- ----------------------------
@@ -339,9 +404,9 @@ CREATE TABLE `undo_log`
 
 `t_order` 表无数据生成
 
-7. 启动 微服务 的 business account stock order
-8. 访问 nacos 检查 当前的服务是否都正确注册到 nacos server
-9. GET 请求 http://127.0.0.1/business/toOrder?userId=1&commodityCode=C201901140001&count=2000&amount=4000
+5. 启动 微服务 的 business account stock order
+6. 访问 nacos 检查 当前的服务是否都正确注册到 nacos server
+7. GET 请求 http://127.0.0.1/business/toOrder?userId=1&commodityCode=C201901140001&count=2000&amount=4000
 
 
 ### 服务入口为 `business` 服务下的  `BusinessController`
